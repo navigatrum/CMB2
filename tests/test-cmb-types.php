@@ -381,20 +381,23 @@ class Test_CMB2_Types extends Test_CMB2_Types_Base {
 		) );
 		$type = $this->get_field_type_object( $field );
 
-		$type_attr = function_exists( 'current_theme_supports' ) && current_theme_supports( 'html5', 'style' ) ? "type='text/css' " : '';
-		$this->assertHTMLstringsAreEqual(
-			'
+		$rendered = $this->capture_render( array( $type, 'render' ) );
+		$format = '
 			<div id="wp-field_test_field-wrap" class="wp-core-ui wp-editor-wrap html-active">
-				<link rel=\'stylesheet\' id=\'dashicons-css\' href=\'' . includes_url( "css/dashicons$suffix.css?$version" ) . '\' media=\'all\' />
-				<link rel=\'stylesheet\' id=\'editor-buttons-css\' href=\'' . includes_url( "css/editor$suffix.css?$version" ) . '\' ' . $type_attr . 'media=\'all\' />
+				<link rel=\'stylesheet\' id=\'dashicons-css\' href=\'' . includes_url( "css/dashicons$suffix.css?$version" ) . '\' %smedia=\'all\' />
+				<link rel=\'stylesheet\' id=\'editor-buttons-css\' href=\'' . includes_url( "css/editor$suffix.css?$version" ) . '\' %smedia=\'all\' />
 				<div id="wp-field_test_field-editor-container" class="wp-editor-container">
 					<textarea class="wp-editor-area" rows="20" cols="40" name="field_test_field" id="field_test_field">
 					</textarea>
 				</div>
 			</div>
-			<p class="cmb2-metabox-description">This is a description</p>',
-			$this->capture_render( array( $type, 'render' ) )
-		);
+			<p class="cmb2-metabox-description">This is a description</p>';
+		$expected = sprintf( $format, '', '' );
+		if ( strlen ( $this->normalize_string( $expected ) ) !== strlen ( $this->normalize_string( $rendered ) ) ) {
+			$expected = sprintf( $format, 'type=\'text/css\' ', 'type=\'text/css\' ' );
+		}
+
+		$this->assertHTMLstringsAreEqual( $expected, $rendered );
 	}
 
 	public function test_text_date_timestamp_field_after_value_update() {
@@ -878,15 +881,19 @@ class Test_CMB2_Types extends Test_CMB2_Types_Base {
 	}
 
 	public function test_file_list_field() {
-		$this->assertHTMLstringsAreEqual(
-			'<input type="hidden" class="cmb2-upload-file cmb2-upload-list" name="field_test_field" id="field_test_field" value="" size="45" data-previewsize=\'[120,120]\' data-sizename=\'thumbnail\' data-queryargs=\'\' data-hash=\'4lavrjdps2t0\'/><input type="button" class="cmb2-upload-button button-secondary cmb2-upload-list" name="" id="" value="' . esc_attr__( 'Add or Upload Files', 'cmb2' ) . '" data-hash=\'4lavrjdps2t0\'/><p class="cmb2-metabox-description">This is a description</p><ul id="field_test_field-status" class="cmb2-media-status cmb-attach-list"></ul>',
-			$this->capture_render( array(
-				$this->get_field_type_object( array(
-					'type' => 'file_list',
-					'preview_size' => array( 120, 120 ),
-				) ), 'render',
-			) )
-		);
+		$rendered = $this->capture_render( array(
+			$this->get_field_type_object( array(
+				'type' => 'file_list',
+				'preview_size' => array( 120, 120 ),
+			) ), 'render',
+		) );
+		$format = '<input type="hidden" class="cmb2-upload-file cmb2-upload-list" name="field_test_field" id="field_test_field" value="" size="45" data-previewsize=\'[120,120]\' data-sizename=\'thumbnail\' data-queryargs=\'\' data-hash=\'4lavrjdps2t0\'/><input type="button" class="cmb2-upload-button button-secondary cmb2-upload-list" %s value="' . esc_attr__( 'Add or Upload Files', 'cmb2' ) . '" data-hash=\'4lavrjdps2t0\'/><p class="cmb2-metabox-description">This is a description</p><ul id="field_test_field-status" class="cmb2-media-status cmb-attach-list"></ul>';
+		$expected = sprintf( $format, '' );
+		if ( strlen ( $this->normalize_string( $expected ) ) !== strlen ( $this->normalize_string( $rendered ) ) ) {
+			$expected = sprintf( $format, 'name="" id=""' );
+		}
+
+		$this->assertHTMLstringsAreEqual( $expected, $rendered );
 	}
 
 	public function test_file_list_field_after_value_update() {
@@ -911,21 +918,25 @@ class Test_CMB2_Types extends Test_CMB2_Types_Base {
 			? 'twentyseventeen-thumbnail-avatar'
 			: 'thumbnail';
 
-		$this->assertHTMLstringsAreEqual(
-			sprintf( '<input type="hidden" class="cmb2-upload-file cmb2-upload-list" name="field_test_field" id="field_test_field" value="" size="45" data-previewsize=\'[50,50]\' data-sizename=\'' . $sizename . '\' data-queryargs=\'\' data-hash=\'4lavrjdps2t0\'/><input type="button" class="cmb2-upload-button button-secondary cmb2-upload-list" name="" id="" value="' . esc_attr__( 'Add or Upload Files', 'cmb2' ) . '" data-hash=\'4lavrjdps2t0\'/><p class="cmb2-metabox-description">This is a description</p><ul id="field_test_field-status" class="cmb2-media-status cmb-attach-list">%1$s%2$s</ul>',
-				$this->file_sprintf( array(
-					'file_name'     => $field_type->get_file_name_from_path( $attach_1_url ),
-					'attachment_id' => $this->attachment_id,
-					'url'           => $attach_1_url,
-				) ),
-				$this->file_sprintf( array(
-					'file_name'     => $field_type->get_file_name_from_path( $attach_2_url ),
-					'attachment_id' => $this->attachment_id2,
-					'url'           => $attach_2_url,
-				) )
-			),
-			$this->capture_render( array( $field_type, 'render' ) )
+
+		$expected = sprintf( '<input type="hidden" class="cmb2-upload-file cmb2-upload-list" name="field_test_field" id="field_test_field" value="" size="45" data-previewsize=\'[50,50]\' data-sizename=\'' . $sizename . '\' data-queryargs=\'\' data-hash=\'4lavrjdps2t0\'/><input type="button" class="cmb2-upload-button button-secondary cmb2-upload-list" name="" id="" value="' . esc_attr__( 'Add or Upload Files', 'cmb2' ) . '" data-hash=\'4lavrjdps2t0\'/><p class="cmb2-metabox-description">This is a description</p><ul id="field_test_field-status" class="cmb2-media-status cmb-attach-list">%1$s%2$s</ul>',
+			$this->file_sprintf( array(
+				'file_name'     => $field_type->get_file_name_from_path( $attach_1_url ),
+				'attachment_id' => $this->attachment_id,
+				'url'           => $attach_1_url,
+			) ),
+			$this->file_sprintf( array(
+				'file_name'     => $field_type->get_file_name_from_path( $attach_2_url ),
+				'attachment_id' => $this->attachment_id2,
+				'url'           => $attach_2_url,
+			) )
 		);
+		$rendered = $this->capture_render( array( $field_type, 'render' ) );
+		if ( strlen ( $this->normalize_string( $expected ) ) !== strlen ( $this->normalize_string( $rendered ) ) ) {
+			$expected = str_replace( 'name="" id=""', '', $expected );
+		}
+
+		$this->assertHTMLstringsAreEqual( $expected, $rendered );
 
 		delete_post_meta( $this->post_id, $this->text_type_field['id'] );
 	}
