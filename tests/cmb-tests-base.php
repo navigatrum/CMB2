@@ -284,17 +284,4 @@ abstract class Test_CMB2 extends WP_UnitTestCase {
 	public function assertIsDefined( $definition ) {
 		return $this->assertTrue( defined( $definition ), "$definition is not defined." );
 	}
-
-	/**
-	 * Backport assertContainsOnlyInstancesOf to PHPUnit 3.6.12 which only runs in PHP 5.2
-	 */
-	public static function assertContainsOnlyInstancesOf( $classname, $haystack, $message = '' ) {
-		if ( version_compare( phpversion(), '5.3', '<' ) ) {
-			foreach ( $haystack as $to_check ) {
-				self::assertInstanceOf( $classname, $to_check, $message );
-			}
-		} else {
-			parent::assertContainsOnlyInstancesOf( $classname, $haystack, $message );
-		}
-	}
 }
