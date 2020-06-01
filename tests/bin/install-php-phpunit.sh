@@ -31,8 +31,11 @@ elif [[ ${TRAVIS_PHP_VERSION:0:3} == "5.6" ]] || [[ ${SWITCH_TO_PHP:0:3} == "5.6
 elif [[ ${TRAVIS_PHP_VERSION:0:2} == "5." ]] || [[ ${SWITCH_TO_PHP:0:2} == "5." ]]; then
   wget -O $HOME/phpunit-bin/phpunit https://phar.phpunit.de/phpunit-4.8.phar
   chmod +x $HOME/phpunit-bin/phpunit
+elif [[ ${TRAVIS_PHP_VERSION:0:3} == "7.0" ]] || [[ ${SWITCH_TO_PHP:0:3} == "7.0" ]]; then
+  wget -O $HOME/phpunit-bin/phpunit https://phar.phpunit.de/phpunit-6.5.phar
+  chmod +x $HOME/phpunit-bin/phpunit
 else
-  composer global require "phpunit/phpunit=6.*"
+  composer global require "phpunit/phpunit=7.*"
 fi
 
 export PATH=$HOME/phpunit-bin/:$PATH
