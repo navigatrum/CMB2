@@ -284,6 +284,7 @@ abstract class Test_CMB2 extends WP_UnitTestCase {
 	public function assertIsDefined( $definition ) {
 		return $this->assertTrue( defined( $definition ), "$definition is not defined." );
 	}
+
 	/**
 	 * Backport assertNotFalse to PHPUnit 3.6.12 which only runs in PHP 5.2
 	 *
