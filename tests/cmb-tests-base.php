@@ -268,7 +268,7 @@ abstract class Test_CMB2 extends WP_UnitTestCase {
 		return $property->getValue( $object );
 	}
 
-	public function assertHTMLstringsAreEqual( $expected_string, $string_to_test, $msg = null ) {
+	public function assertHTMLstringsAreEqual( $expected_string, $string_to_test, $msg = '' ) {
 		$expected_string = $this->normalize_string( $expected_string );
 		$string_to_test = $this->normalize_string( $string_to_test );
 
@@ -284,7 +284,6 @@ abstract class Test_CMB2 extends WP_UnitTestCase {
 	public function assertIsDefined( $definition ) {
 		return $this->assertTrue( defined( $definition ), "$definition is not defined." );
 	}
-
 	/**
 	 * Backport assertNotFalse to PHPUnit 3.6.12 which only runs in PHP 5.2
 	 *
