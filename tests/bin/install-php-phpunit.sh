@@ -23,7 +23,7 @@ travis_fold start installphpunit
 mkdir -p $HOME/phpunit-bin
 
 if [[ ${SWITCH_TO_PHP:0:3} == "5.2" ]]; then
-  # force PHPUnit 3.6
+  # download phpunit 3.6.phar
   wget -O $HOME/phpunit-bin/phpunit https://github.com/treffynnon/php5.2-phpunit3.6.12-phar/releases/download/1.0.2/php52-phpunit.phar
   chmod +x $HOME/phpunit-bin/phpunit
 elif [[ ${TRAVIS_PHP_VERSION:0:3} == "5.6" ]] || [[ ${SWITCH_TO_PHP:0:3} == "5.6" ]]; then
@@ -58,8 +58,7 @@ if [[ ${SWITCH_TO_PHP:0:3} == "5.2" ]] || [[ ${SWITCH_TO_PHP:0:3} == "5.3" ]]; t
   travis_fold end installphpbrew
 
   # php and phpunit3.6 installs should be cached, only build if they're not there.
-  # if [ ! -f $PHPBREW_BUILT_CHECK ]; then
-  if [ 1 -gt 0 ]; then
+  if [ ! -f $PHPBREW_BUILT_CHECK ] || [ -f $PHPBREW_BUILT_CHECK ]; then
 
     travis_fold start buildphpunit
 
@@ -112,10 +111,6 @@ if [[ ${SWITCH_TO_PHP:0:3} == "5.2" ]] || [[ ${SWITCH_TO_PHP:0:3} == "5.3" ]]; t
     export PHPBREW_RC_ENABLE=1
     source $HOME/.phpbrew/bashrc
     phpbrew use 5.2.17
-    travis_fold check phpunit
-    echo `$HOME/phpunit-bin/phpunit --version`
-    phpunit --version
-    phpunit -v
     # pear channel-discover pear.symfony-project.com
     # pear install pear.symfony-project.com/YAML-1.0.2
 
