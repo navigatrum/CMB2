@@ -58,7 +58,7 @@ if [[ ${SWITCH_TO_PHP:0:3} == "5.2" ]] || [[ ${SWITCH_TO_PHP:0:3} == "5.3" ]]; t
   travis_fold end installphpbrew
 
   # php and phpunit3.6 installs should be cached, only build if they're not there.
-  if [ ! -f $PHPBREW_BUILT_CHECK ] || [ -f $PHPBREW_BUILT_CHECK ]; then
+  if [ ! -f $PHPBREW_BUILT_CHECK ]; then
 
     travis_fold start buildphpunit
 
@@ -136,6 +136,8 @@ if [[ ${SWITCH_TO_PHP:0:3} == "5.2" ]] || [[ ${SWITCH_TO_PHP:0:3} == "5.3" ]]; t
 
   if [[ ${SWITCH_TO_PHP:0:3} == "5.2" ]]; then
     phpbrew use 5.2.17
+    travis_fold check phpunitversion
+    $HOME/phpunit-bin/phpunit --version
   else
     phpbrew use 5.3.29
   fi
