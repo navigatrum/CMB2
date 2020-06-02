@@ -23,8 +23,9 @@ travis_fold start installphpunit
 mkdir -p $HOME/phpunit-bin
 
 if [[ ${SWITCH_TO_PHP:0:3} == "5.2" ]]; then
-  # use the phpunit in the PHP5.2 installation
-  ln -s ${PHP52_PATH}/lib/php/phpunit/phpunit.php $HOME/phpunit-bin/phpunit
+  # force PHPUnit 3.6
+  wget -O $HOME/phpunit-bin/phpunit https://github.com/treffynnon/php5.2-phpunit3.6.12-phar/releases/download/1.0.2/php52-phpunit.phar
+  chmod +x $HOME/phpunit-bin/phpunit
 elif [[ ${TRAVIS_PHP_VERSION:0:3} == "5.6" ]] || [[ ${SWITCH_TO_PHP:0:3} == "5.6" ]]; then
   wget -O $HOME/phpunit-bin/phpunit https://phar.phpunit.de/phpunit-5.7.phar
   chmod +x $HOME/phpunit-bin/phpunit
