@@ -112,6 +112,9 @@ if [[ ${SWITCH_TO_PHP:0:3} == "5.2" ]] || [[ ${SWITCH_TO_PHP:0:3} == "5.3" ]]; t
 
     # manually go back to the system php, we can't use `phpbrew switch-off`
     # because we're running a version of php that phpbrew doesn't work with at this point
+    cd $HOME
+    export PHPBREW_RC_ENABLE=1
+    source $HOME/.phpbrew/bashrc
     unset PHPBREW_PHP
     unset PHPBREW_PATH
     __phpbrew_set_path
