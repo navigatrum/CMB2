@@ -59,7 +59,7 @@ if [[ ${SWITCH_TO_PHP:0:3} == "5.2" ]] || [[ ${SWITCH_TO_PHP:0:3} == "5.3" ]]; t
   # php and phpunit3.6 installs should be cached, only build if they're not there.
   if [ ! -f $PHPBREW_BUILT_CHECK ]; then
 
-    travis_fold start buildphpunit
+    travis_fold start installPHP${SWITCH_TO_PHP:0:3}
 
     # init with known --old to get 5.2 and 5.3
     $HOME/php-utils-bin/phpbrew init
@@ -78,53 +78,58 @@ if [[ ${SWITCH_TO_PHP:0:3} == "5.2" ]] || [[ ${SWITCH_TO_PHP:0:3} == "5.3" ]]; t
     # +gettext +phar +openssl -- --with-openssl-dir=/usr/include/openssl --enable-spl --with-mysql --with-mysqli=/usr/bin/mysql_config --with-pdo-mysql=/usr \
     # > /dev/null
 
-    # install PHPUnit 3.6. The only install method available is from source, using git branches old
-    # enough that they don't rely on any PHP5.3+ features. This clones each needed dependency
-    # and then we add the paths to the include_path by setting up an extra .ini file
-    cd ${PHP52_PATH}/lib/php
+    travis_fold end installPHP${SWITCH_TO_PHP:0:3}
 
-    # dependencies
-    git clone --depth=1 --branch=1.1   git://github.com/sebastianbergmann/dbunit.git
-    git clone --depth=1 --branch=1.1   git://github.com/sebastianbergmann/php-code-coverage.git
-    git clone --depth=1 --branch=1.3.2 git://github.com/sebastianbergmann/php-file-iterator.git
-    git clone --depth=1 --branch=1.1.1 git://github.com/sebastianbergmann/php-invoker.git
-    git clone --depth=1 --branch=1.1.2 git://github.com/sebastianbergmann/php-text-template.git
-    git clone --depth=1 --branch=1.0.3 git://github.com/sebastianbergmann/php-timer.git
-    git clone --depth=1 --branch=1.1.4 git://github.com/sebastianbergmann/php-token-stream.git
-    git clone --depth=1 --branch=1.1   git://github.com/sebastianbergmann/phpunit-mock-objects.git
-    git clone --depth=1 --branch=1.1   git://github.com/sebastianbergmann/phpunit-selenium.git
-    git clone --depth=1 --branch=1.0.0 git://github.com/sebastianbergmann/phpunit-story.git
+    if [[ ${SWITCH_TO_PHP:0:3} == "5.2" ]]; then
 
-    # and the version of phpunit that we expect to run with php 5.2
-    git clone --depth=1 --branch=3.6   git://github.com/sebastianbergmann/phpunit.git
+      travis_fold start buildphpunit
 
-    # fix up the version number of phpunit
-    sed -i 's/@package_version@/3.6-git/g' phpunit/PHPUnit/Runner/Version.php
+      # install PHPUnit 3.6. The only install method available is from source, using git branches old
+      # enough that they don't rely on any PHP5.3+ features. This clones each needed dependency
+      # and then we add the paths to the include_path by setting up an extra .ini file
+      cd ${PHP52_PATH}/lib/php
 
-    # now set up an ini file that adds all of the above to include_path for the PHP5.2 install
-    mkdir -p ${PHP52_PATH}/var/db
-    echo "include_path=.:${PHP52_PATH}/lib/php:${PHP52_PATH}/lib/php/dbunit:${PHP52_PATH}/lib/php/php-code-coverage:${PHP52_PATH}/lib/php/php-file-iterator:${PHP52_PATH}/lib/php/php-invoker:${PHP52_PATH}/lib/php/php-text-template:${PHP52_PATH}/lib/php/php-timer:${PHP52_PATH}/lib/php/php-token-stream:${PHP52_PATH}/lib/php/phpunit-mock-objects:${PHP52_PATH}/lib/php/phpunit-selenium:${PHP52_PATH}/lib/php/phpunit-story:${PHP52_PATH}/lib/php/phpunit" > ${PHP52_PATH}/var/db/path.ini
+      # dependencies
+      git clone --depth=1 --branch=1.1   git://github.com/sebastianbergmann/dbunit.git
+      git clone --depth=1 --branch=1.1   git://github.com/sebastianbergmann/php-code-coverage.git
+      git clone --depth=1 --branch=1.3.2 git://github.com/sebastianbergmann/php-file-iterator.git
+      git clone --depth=1 --branch=1.1.1 git://github.com/sebastianbergmann/php-invoker.git
+      git clone --depth=1 --branch=1.1.2 git://github.com/sebastianbergmann/php-text-template.git
+      git clone --depth=1 --branch=1.0.3 git://github.com/sebastianbergmann/php-timer.git
+      git clone --depth=1 --branch=1.1.4 git://github.com/sebastianbergmann/php-token-stream.git
+      git clone --depth=1 --branch=1.1   git://github.com/sebastianbergmann/phpunit-mock-objects.git
+      git clone --depth=1 --branch=1.1   git://github.com/sebastianbergmann/phpunit-selenium.git
+      git clone --depth=1 --branch=1.0.0 git://github.com/sebastianbergmann/phpunit-story.git
+      svn export https://github.com/symfony/symfony1/trunk/lib/yaml SymfonyComponents
 
-    # one more PHPUnit dependency that we need to install using pear under PHP5.2
-    cd $HOME
-    export PHPBREW_RC_ENABLE=1
-    source $HOME/.phpbrew/bashrc
-    phpbrew use 5.2.17
-    pear channel-discover pear.symfony-project.com
-    pear install pear.symfony-project.com/YAML-1.0.2
+      # and the version of phpunit that we expect to run with php 5.2
+      wget https://github.com/sebastianbergmann/phpunit/archive/3.6.12.tar.gz
+      tar zxf 3.6.12.tar.gz && mv phpunit-3.6.12 phpunit
 
-    # manually go back to the system php, we can't use `phpbrew switch-off`
-    # because we're running a version of php that phpbrew doesn't work with at this point
-    unset PHPBREW_PHP
-    unset PHPBREW_PATH
-    __phpbrew_set_path
-    __phpbrew_reinit
-    eval `$BIN env`
+      # fix up the version number of phpunit
+      sed -i 's/@package_version@/3.6-git/g' phpunit/PHPUnit/Runner/Version.php
+
+      # now set up an ini file that adds all of the above to include_path for the PHP5.2 install
+      mkdir -p ${PHP52_PATH}/var/db
+      echo "include_path=.:${PHP52_PATH}/lib/php:${PHP52_PATH}/lib/php/dbunit:${PHP52_PATH}/lib/php/php-code-coverage:${PHP52_PATH}/lib/php/php-file-iterator:${PHP52_PATH}/lib/php/php-invoker:${PHP52_PATH}/lib/php/php-text-template:${PHP52_PATH}/lib/php/php-timer:${PHP52_PATH}/lib/php/php-token-stream:${PHP52_PATH}/lib/php/phpunit-mock-objects:${PHP52_PATH}/lib/php/phpunit-selenium:${PHP52_PATH}/lib/php/phpunit-story:${PHP52_PATH}/lib/php/phpunit/SymfonyComponents:${PHP52_PATH}/lib/php/phpunit" > ${PHP52_PATH}/var/db/path.ini
+
+      # manually go back to the system php, we can't use `phpbrew switch-off`
+      # because we're running a version of php that phpbrew doesn't work with at this point
+      cd $HOME
+      export PHPBREW_RC_ENABLE=1
+      source $HOME/.phpbrew/bashrc
+      phpbrew use 5.2.17
+      unset PHPBREW_PHP
+      unset PHPBREW_PATH
+      __phpbrew_set_path
+      __phpbrew_reinit
+      eval `$BIN env`
+
+      travis_fold end buildphpunit
+    fi
 
     # clean up build directory
     rm -rf $HOME/.phpbrew/build/*
-
-    travis_fold end buildphpunit
   fi
 
   # all needed php versions and phpunit versions are installed, either from the above
