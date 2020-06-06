@@ -40,7 +40,7 @@ export PATH=$HOME/phpunit-bin/:$PATH
 travis_fold end installphpunit
 
 if [[ ${SWITCH_TO_PHP:0:3} == "5.2" ]] || [[ ${SWITCH_TO_PHP:0:3} == "5.3" ]]; then
-  PHPBREW_BUILT_CHECK=$HOME/.phpbrew/bashrc
+  PHPBREW_BUILT_CHECK=$HOME/.phpbrew/check_build_${SWITCH_TO_PHP:0:3}
 
   travis_fold start installphpbrew
 
@@ -65,18 +65,19 @@ if [[ ${SWITCH_TO_PHP:0:3} == "5.2" ]] || [[ ${SWITCH_TO_PHP:0:3} == "5.3" ]]; t
     $HOME/php-utils-bin/phpbrew init
     $HOME/php-utils-bin/phpbrew known --old
 
-    # build PHP5.2
-    echo 'Installing PHP 5.2...'
-    $HOME/php-utils-bin/phpbrew install --patch ${THIS_DIR}/patches/node.patch --patch ${THIS_DIR}/patches/openssl.patch 5.2 +default +mysql +pdo \
-    +gettext +phar +openssl -- --with-openssl-dir=/usr/include/openssl --enable-spl --with-mysql --with-mysqli=/usr/bin/mysql_config --with-pdo-mysql=/usr \
-    > /dev/null
-
-    # Remove 5.3 or Travis build becomes too large.
-    # build PHP5.3
-    # echo 'Installing PHP 5.3...'
-    # $HOME/php-utils-bin/phpbrew install --patch ${THIS_DIR}/patches/node.patch --patch ${THIS_DIR}/patches/openssl.patch 5.3 +default +mysql +pdo \
-    # +gettext +phar +openssl -- --with-openssl-dir=/usr/include/openssl --enable-spl --with-mysql --with-mysqli=/usr/bin/mysql_config --with-pdo-mysql=/usr \
-    # > /dev/null
+    if [[ ${SWITCH_TO_PHP:0:3} == "5.3" ]]; then
+      # build PHP5.3
+      echo 'Installing PHP 5.3...'
+      $HOME/php-utils-bin/phpbrew install --patch ${THIS_DIR}/patches/node.patch --patch ${THIS_DIR}/patches/openssl.patch 5.3 +default +mysql +pdo \
+      +gettext +phar +openssl -- --with-openssl-dir=/usr/include/openssl --enable-spl --with-mysql --with-mysqli=/usr/bin/mysql_config --with-pdo-mysql=/usr \
+      > /dev/null && touch $PHPBREW_BUILT_CHECK
+    else
+      # build PHP5.2
+      echo 'Installing PHP 5.2...'
+      $HOME/php-utils-bin/phpbrew install --patch ${THIS_DIR}/patches/node.patch --patch ${THIS_DIR}/patches/openssl.patch 5.2 +default +mysql +pdo \
+      +gettext +phar +openssl -- --with-openssl-dir=/usr/include/openssl --enable-spl --with-mysql --with-mysqli=/usr/bin/mysql_config --with-pdo-mysql=/usr \
+      > /dev/null && touch $PHPBREW_BUILT_CHECK
+    elif
 
     travis_fold end installPHP${SWITCH_TO_PHP:0:3}
 
