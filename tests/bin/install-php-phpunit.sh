@@ -40,7 +40,6 @@ export PATH=$HOME/phpunit-bin/:$PATH
 travis_fold end installphpunit
 
 if [[ ${SWITCH_TO_PHP:0:3} == "5.2" ]] || [[ ${SWITCH_TO_PHP:0:3} == "5.3" ]]; then
-  PHPBREW_BUILT_CHECK=$HOME/.phpbrew/check_build_${SWITCH_TO_PHP:0:3}
 
   travis_fold start installphpbrew
 
@@ -56,6 +55,8 @@ if [[ ${SWITCH_TO_PHP:0:3} == "5.2" ]] || [[ ${SWITCH_TO_PHP:0:3} == "5.3" ]]; t
 
   travis_fold end installphpbrew
 
+  PHPBREW_BUILT_CHECK=$HOME/.phpbrew/check_build_php_${SWITCH_TO_PHP:0:3}
+
   # php and phpunit3.6 installs should be cached, only build if they're not there.
   if [ ! -f $PHPBREW_BUILT_CHECK ]; then
 
@@ -65,23 +66,33 @@ if [[ ${SWITCH_TO_PHP:0:3} == "5.2" ]] || [[ ${SWITCH_TO_PHP:0:3} == "5.3" ]]; t
     $HOME/php-utils-bin/phpbrew init
     $HOME/php-utils-bin/phpbrew known --old
 
+    mkdir -p $HOME/.phpbrew/distfiles
+
     if [[ ${SWITCH_TO_PHP:0:3} == "5.3" ]]; then
+
+      # fetch the build tarball manually
+      curl -L -o $HOME/.phpbrew/distfiles/php-5.3.29.tar.bz2 https://museum.php.net/php5/php-5.3.29.tar.bz2
+
       # build PHP5.3
       echo 'Installing PHP 5.3...'
       $HOME/php-utils-bin/phpbrew install --patch ${THIS_DIR}/patches/node.patch --patch ${THIS_DIR}/patches/openssl.patch 5.3 +default +mysql +pdo \
       +gettext +phar +openssl -- --with-openssl-dir=/usr/include/openssl --enable-spl --with-mysql --with-mysqli=/usr/bin/mysql_config --with-pdo-mysql=/usr \
-      > /dev/null && touch $PHPBREW_BUILT_CHECK
+      && touch $PHPBREW_BUILT_CHECK
+      
+      travis_fold end installPHP5.3
+
     else
+
+      # fetch the build tarball manually
+      curl -L -o $HOME/.phpbrew/distfiles/php-5.2.17.tar.bz2 https://museum.php.net/php5/php-5.2.17.tar.bz2
+
       # build PHP5.2
       echo 'Installing PHP 5.2...'
       $HOME/php-utils-bin/phpbrew install --patch ${THIS_DIR}/patches/node.patch --patch ${THIS_DIR}/patches/openssl.patch 5.2 +default +mysql +pdo \
       +gettext +phar +openssl -- --with-openssl-dir=/usr/include/openssl --enable-spl --with-mysql --with-mysqli=/usr/bin/mysql_config --with-pdo-mysql=/usr \
-      > /dev/null && touch $PHPBREW_BUILT_CHECK
-    fi
+      && touch $PHPBREW_BUILT_CHECK
 
-    travis_fold end installPHP${SWITCH_TO_PHP:0:3}
-
-    if [[ ${SWITCH_TO_PHP:0:3} == "5.2" ]]; then
+      travis_fold end installPHP5.2
 
       travis_fold start buildphpunit
 
