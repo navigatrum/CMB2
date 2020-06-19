@@ -22,20 +22,41 @@ travis_fold start installphpunit
 
 mkdir -p $HOME/phpunit-bin
 
-if [[ ${SWITCH_TO_PHP:0:3} == "5.2" ]]; then
-  # use the phpunit in the PHP5.2 installation
-  ln -s ${PHP52_PATH}/lib/php/phpunit/phpunit.php $HOME/phpunit-bin/phpunit
-elif [[ ${TRAVIS_PHP_VERSION:0:3} == "5.6" ]] || [[ ${SWITCH_TO_PHP:0:3} == "5.6" ]]; then
-  wget -O $HOME/phpunit-bin/phpunit https://phar.phpunit.de/phpunit-5.7.phar
-  chmod +x $HOME/phpunit-bin/phpunit
-elif [[ ${TRAVIS_PHP_VERSION:0:2} == "5." ]] || [[ ${SWITCH_TO_PHP:0:2} == "5." ]]; then
-  wget -O $HOME/phpunit-bin/phpunit https://phar.phpunit.de/phpunit-4.8.phar
-  chmod +x $HOME/phpunit-bin/phpunit
-else
-  composer global require "phpunit/phpunit=6.*"
-fi
+CURRENT_PHP_VERSION=$SWITCH_TO_PHP || $TRAVIS_PHP_VERSION;
+case "${SWITCH_TO_PHP:-${TRAVIS_PHP_VERSION}}" in
+  7.4|7.3|7.2|7.1)
+    composer global require "phpunit/phpunit:^7"
+    ;;
+  7.0)
+    composer global require "phpunit/phpunit:^6"
+    ;;
+  5.6|5.5|5.4|5.3)
+    composer global require "phpunit/phpunit:^4"
+    ;;
+  5.2)
+    ln -s ${PHP52_PATH}/lib/php/phpunit/phpunit.php $HOME/phpunit-bin/phpunit
+    export PATH=$HOME/phpunit-bin/:$PATH
+    ;;
+  *)
+    echo "No PHPUnit version handling for PHP version ${SWITCH_TO_PHP:-${TRAVIS_PHP_VERSION}}"
+    exit 1
+    ;;
+esac
 
-export PATH=$HOME/phpunit-bin/:$PATH
+# if [[ ${SWITCH_TO_PHP:0:3} == "5.2" ]]; then
+#   # use the phpunit in the PHP5.2 installation
+#   ln -s ${PHP52_PATH}/lib/php/phpunit/phpunit.php $HOME/phpunit-bin/phpunit
+# elif [[ ${TRAVIS_PHP_VERSION:0:3} == "5.6" ]] || [[ ${SWITCH_TO_PHP:0:3} == "5.6" ]]; then
+#   wget -O $HOME/phpunit-bin/phpunit https://phar.phpunit.de/phpunit-5.7.phar
+#   chmod +x $HOME/phpunit-bin/phpunit
+# elif [[ ${TRAVIS_PHP_VERSION:0:2} == "5." ]] || [[ ${SWITCH_TO_PHP:0:2} == "5." ]]; then
+#   wget -O $HOME/phpunit-bin/phpunit https://phar.phpunit.de/phpunit-4.8.phar
+#   chmod +x $HOME/phpunit-bin/phpunit
+# else
+#   composer global require "phpunit/phpunit=6.*"
+# fi
+
+# export PATH=$HOME/phpunit-bin/:$PATH
 
 travis_fold end installphpunit
 
@@ -68,27 +89,14 @@ if [[ ${SWITCH_TO_PHP:0:3} == "5.2" ]] || [[ ${SWITCH_TO_PHP:0:3} == "5.3" ]]; t
 
     mkdir -p $HOME/.phpbrew/distfiles
 
-    if [[ ${SWITCH_TO_PHP:0:3} == "5.3" ]]; then
+    if [[ ${SWITCH_TO_PHP:0:3} == "5.2" ]]; then
 
-      # fetch the build tarball manually
-      curl -L -o $HOME/.phpbrew/distfiles/php-5.3.29.tar.bz2 https://museum.php.net/php5/php-5.3.29.tar.bz2
-
-      # build PHP5.3
-      echo 'Installing PHP 5.3...'
-      $HOME/php-utils-bin/phpbrew install --patch ${THIS_DIR}/patches/node.patch --patch ${THIS_DIR}/patches/openssl.patch 5.3 +default +mysql +pdo \
-      +gettext +phar +openssl -- --with-openssl-dir=/usr/include/openssl --enable-spl --with-mysql --with-mysqli=/usr/bin/mysql_config --with-pdo-mysql=/usr \
-      && touch $PHPBREW_BUILT_CHECK
-      
-      travis_fold end installPHP5.3
-
-    else
-
-      # fetch the build tarball manually
+          # fetch the php5.2 build tarball manually
       curl -L -o $HOME/.phpbrew/distfiles/php-5.2.17.tar.bz2 https://museum.php.net/php5/php-5.2.17.tar.bz2
 
       # build PHP5.2
       echo 'Installing PHP 5.2...'
-      $HOME/php-utils-bin/phpbrew install --patch ${THIS_DIR}/patches/node.patch --patch ${THIS_DIR}/patches/openssl.patch 5.2 +default +mysql +pdo \
+      $HOME/php-utils-bin/phpbrew install --patch ${THIS_DIR}/patches/node.patch --patch ${THIS_DIR}/patches/openssl.patch 5.2.17 +default +mysql +pdo \
       +gettext +phar +openssl -- --with-openssl-dir=/usr/include/openssl --enable-spl --with-mysql --with-mysqli=/usr/bin/mysql_config --with-pdo-mysql=/usr \
       && touch $PHPBREW_BUILT_CHECK
 
@@ -138,6 +146,17 @@ if [[ ${SWITCH_TO_PHP:0:3} == "5.2" ]] || [[ ${SWITCH_TO_PHP:0:3} == "5.3" ]]; t
       eval `$BIN env`
 
       travis_fold end buildphpunit
+    else
+      # fetch the php5.3 build tarball manually
+      curl -L -o $HOME/.phpbrew/distfiles/php-5.3.29.tar.bz2 https://museum.php.net/php5/php-5.3.29.tar.bz2
+
+      # build PHP5.3
+      echo 'Installing PHP 5.3...'
+      $HOME/php-utils-bin/phpbrew install --patch ${THIS_DIR}/patches/node.patch --patch ${THIS_DIR}/patches/openssl.patch 5.3.29 +default +mysql +pdo \
+      +gettext +phar +openssl -- --with-openssl-dir=/usr/include/openssl --enable-spl --with-mysql --with-mysqli=/usr/bin/mysql_config --with-pdo-mysql=/usr \
+      && touch $PHPBREW_BUILT_CHECK
+      
+      travis_fold end installPHP5.3
     fi
 
     # clean up build directory
